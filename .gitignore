@@ -17,3 +17,6 @@ static/rest_framework/
 static/drf-yasg
 cms/local_settings.py
 deploy/docker/local_settings.py
+/.settings/
+/.project
+/.gitignore
