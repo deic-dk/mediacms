@@ -9,6 +9,9 @@ ENV PIP_NO_CACHE_DIR=1
 
 RUN mkdir -p /home/mediacms.io/mediacms/{logs} && cd /home/mediacms.io && python3 -m venv $VIRTUAL_ENV
 
+# Have www-data have UID 80 - matching the UID of the NFS mounted directory from silo5
+RUN usermod -u 80 www-data
+
 # Install dependencies:
 COPY requirements.txt .
 

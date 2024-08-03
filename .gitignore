@@ -20,3 +20,4 @@ deploy/docker/local_settings.py
 /.settings/
 /.project
 /.gitignore
+/.pydevproject
