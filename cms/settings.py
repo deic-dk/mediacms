@@ -119,8 +119,7 @@ ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
 ACCOUNT_USERNAME_REQUIRED = True
 ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
-ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 20
-ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 5
+ACCOUNT_RATE_LIMITS = {"login_failed": "5"}
 # registration won't be open, might also consider to remove links for register
 USERS_CAN_SELF_REGISTER = True
 
@@ -313,6 +312,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "cms.urls"

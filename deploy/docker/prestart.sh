@@ -5,6 +5,11 @@ ADMIN_PASSWORD=${ADMIN_PASSWORD:-$RANDOM_ADMIN_PASS}
 
 if [ X"$ENABLE_MIGRATIONS" = X"yes" ]; then
     echo "Running migrations service"
+    export VIRTUAL_ENV=/home/mediacms.io
+    export PATH="$VIRTUAL_ENV/bin:$PATH"
+    export PYTHONPATH=$PYTHONPATH:`ls -d /home/mediacms.io/lib/python3*/site-packages | sed 's| |:|g'`
+    python3 -m venv $VIRTUAL_ENV
+
     python manage.py migrate
     EXISTING_INSTALLATION=`echo "from users.models import User; print(User.objects.exists())" |python manage.py shell`
     if [ "$EXISTING_INSTALLATION" = "True" ]; then
@@ -14,7 +19,7 @@ if [ X"$ENABLE_MIGRATIONS" = X"yes" ]; then
         python manage.py loaddata fixtures/encoding_profiles.json
         python manage.py loaddata fixtures/categories.json
 
-    	# post_save, needs redis to succeed (ie. migrate depends on redis)
+      # post_save, needs redis to succeed (ie. migrate depends on redis)
         DJANGO_SUPERUSER_PASSWORD=$ADMIN_PASSWORD python manage.py createsuperuser \
             --no-input \
             --username=$ADMIN_USER \

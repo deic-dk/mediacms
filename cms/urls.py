@@ -1,7 +1,7 @@
 import debug_toolbar
 from django.conf.urls import include
 from django.contrib import admin
-from django.urls import path, re_path
+from django.urls import path, re_path, include
 from django.views.generic.base import TemplateView
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
@@ -23,6 +23,8 @@ urlpatterns = [
     re_path(r"^", include("files.urls")),
     re_path(r"^", include("users.urls")),
     re_path(r"^accounts/", include("allauth.urls")),
+    re_path(r"^accounts/socialaccount/", include("allauth.socialaccount.urls")),
+    re_path(r"^accounts/socialaccount/", include("allauth.socialaccount.providers.saml.urls")),
     re_path(r"^api-auth/", include("rest_framework.urls")),
     path("admin/", admin.site.urls),
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),

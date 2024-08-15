@@ -6,31 +6,19 @@ set -e
 #ln -sf /dev/stdout /var/log/nginx/mediacms.io.access.log && ln -sf /dev/stderr /var/log/nginx/mediacms.io.error.log
 
 #cp /home/mediacms.io/mediacms/deploy/docker/local_settings.py /home/mediacms.io/mediacms/cms/local_settings.py
-curl --insecure -L https://10.2.0.18/storage/local_settings.py -o /home/mediacms.io/mediacms/cms/local_settings.py
+cp -r /home/mediacms.io/mediacms/media_files_orig/* /home/mediacms.io/mediacms/media_files/
 
-mkdir -p /home/mediacms.io/mediacms/{logs,media_files/hls}
-touch /home/mediacms.io/mediacms/logs/debug.log
+# Wait for ScienceData to refresh pods cache
+while true; do
+  echo $i
+  if [ "`curl -s -o /dev/null -w "%{http_code}" --insecure -u mediacms: https://10.2.0.18/storage/local_settings.py`" -eq "200" ]; then
+    echo ok && break
+  fi
+  sleep 4
+done
 
-mkdir -p /var/run/mediacms
-chown www-data:www-data /var/run/mediacms
+curl --insecure -u mediacms: https://10.2.0.18/storage/local_settings.py -o /home/mediacms.io/mediacms/cms/local_settings.py
 
-TARGET_GID=$(stat -c "%g" /home/mediacms.io/mediacms/)
-
-EXISTS=$(cat /etc/group | grep $TARGET_GID | wc -l)
-
-# Create new group using target GID and add www-data user
-if [ $EXISTS == "0" ]; then
-    groupadd -g $TARGET_GID tempgroup
-    usermod -a -G tempgroup www-data
-else
-    # GID exists, find group name and add
-    GROUP=$(getent group $TARGET_GID | cut -d: -f1)
-    usermod -a -G $GROUP www-data
-fi
-
-# We should do this only for folders that have a different owner, since it is an expensive operation
-find /home/mediacms.io/ ! \( -user www-data -group $TARGET_GID \) -exec chown www-data:$TARGET_GID {} +
-
-chmod +x /home/mediacms.io/mediacms/deploy/docker/start.sh /home/mediacms.io/mediacms/deploy/docker/prestart.sh
+rsync -a /home/mediacms.io/mediacms/media_files/static/ /home/mediacms.io/mediacms/static/
 
 exec "$@"
