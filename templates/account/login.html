@@ -4,23 +4,28 @@
 
 {% block innercontent %}
 <div class="user-action-form-wrap">
-    <div class="user-action-form-inner">
-
+	<div class="user-action-form-inner">
 		<h1>Sign In</h1>
 
-		<p>If you have not created an account yet, then please <a href="{{ signup_url }}">sign up</a> first.</p>
-
-		<form class="login" method="POST" action="{% url 'account_login' %}">
-		  {% csrf_token %}
-		  {{ form.as_p }}
-		  {% if redirect_field_value %}
-		  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-		  {% endif %}
-		  <button class="primaryAction" type="submit">Sign In</button>
-		  <a class="button secondaryAction" href="{% url 'account_reset_password' %}">Forgot Password?</a>
+		{% load socialaccount %}
+		<div class="saml_login">
+		<form method="post" action="{% provider_login_url 'https://wayf.wayf.dk' %}">
+		{% csrf_token %}
+		<button type="submit">Log in via your institution</button>
+    <button class="cancelButton"  type="button" onclick="cancel_login()">Cancel</button>
+		</form>
+		</div>
+		<p>Guest login <a href="#"><i id="guest_login_toggle" class="material-icons" data-icon="keyboard_arrow_right" onclick="toggle_guest_login()"></i></a></p>
+		<form class="login hidden" method="POST" id="login_form" action="{% url 'account_login' %}">
+		{% csrf_token %}
+		{{ form.as_p }}
+		{% if redirect_field_value %}
+		<input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+		{% endif %}
+		<button class="primaryAction" type="submit">Sign in</button>
 		</form>
 
-    </div>
+	</div>
 </div>
 {% endblock innercontent %}
 

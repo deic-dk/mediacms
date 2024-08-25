@@ -33,7 +33,7 @@ echo 'root:secret' | chpasswd
 echo "www-data ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/www-data && chmod 0440 /etc/sudoers.d/www-data
 
 # The SAML auth provider rejects logins because it is serving HTTP, but addressed at a HTTPS URL - i.e. reverse proxied by Caddy and Nginx. Fix:
-sed -i 's|^def build_auth|def old_build_auth|'
+sed -i 's|^def build_auth|def old_build_auth|' /home/mediacms.io/lib/python3.11/site-packages/allauth/socialaccount/providers/saml/utils.py
 cat << "EOF" >> /home/mediacms.io/lib/python3.11/site-packages/allauth/socialaccount/providers/saml/utils.py
 def build_auth(request, provider):
     req = prepare_django_request(request)
@@ -43,3 +43,28 @@ def build_auth(request, provider):
     auth = OneLogin_Saml2_Auth(req, config)
     return auth
 EOF
+
+# This is to be able to send mails via mailhotel.i2.dk
+sed -i '/\[openssl_init\]/r'<( cat << "EOF"
+ssl_conf = ssl_sect
+
+[ssl_sect]
+
+system_default = system_default_sect
+
+[system_default_sect]
+MinProtocol = TLSv1.2
+CipherString = DEFAULT:@SECLEVEL=1
+
+EOF
+) /etc/ssl/openssl.cnf
+
+# Allow socialaacount/saml to keep the WAYF saml UID as username (it is in fact unique).
+# Fill in full name
+sed -i -E "s|(user_username\(sociallogin\.user, \"\"\))|#\1\n                print(\"Insisting on \"+username)\n        user_field(sociallogin.user, \"name\", user_field(sociallogin.user, \"first_name\")+\" \"+user_field(sociallogin.user, \"last_name\"))|" /home/mediacms.io/lib/python3.11/site-packages/allauth/socialaccount/internal/flows/signup.py
+sed -i -E "s|(user_username,)|\1\n    user_field,|"  /home/mediacms.io/lib/python3.11/site-packages/allauth/socialaccount/internal/flows/signup.py
+
+# This is to be able to use mailhotel.i2.dk as mail server: It encorces TLS, but uses a short key (and an expired certificate)
+
+sed -i -E "s|(if not self.use_ssl and self.use_tls:)|\1\n                self.ssl_context.set_ciphers('DEFAULT:\!DH')|" /home/mediacms.io/lib/python3.11/site-packages/django/core/mail/backends/smtp.py
+

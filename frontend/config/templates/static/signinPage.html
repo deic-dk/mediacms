@@ -6,8 +6,16 @@
       <div class="user-action-form-wrap">
         <div class="user-action-form-inner">
           <h1>Sign In</h1>
-          <p>If you have not created an account yet, then please <a href="./register.html">sign up</a> first.</p>
-          <form class="login" method="POST" action="#">
+            {% load socialaccount %}
+            <div class="saml_login">
+            <form method="post" action="{% provider_login_url 'https://wayf.wayf.dk' %}">
+              {% csrf_token %}
+              <button type="submit">Log in via your institution</button>
+              <button class="cancelButton" type="button" onclick="cancel_login()">Cancel</button>
+            </form>
+            </div>
+          <p>Guest login <a href="#"><i id="guest_login_toggle" class="material-icons" data-icon="keyboard_arrow_right" onclick="toggle_guest_login()"></i></a></p>
+          <form class="login hidden" method="POST" id="login_form" action="#">
             <input type="hidden" name="csrfmiddlewaretoken" value="" />
             <p>
               <label for="id_login">Login:</label>
@@ -24,8 +32,7 @@
               <label for="id_password">Password:</label>
               <input type="password" name="password" id="id_password" required="" placeholder="Password" />
             </p>
-            <a class="button secondaryAction" href="./reset-password.html">Forgot Password?</a>
-            <button class="primaryAction" type="submit">Sign In</button>
+            <button class="primaryAction" type="submit">Sign in</button>
           </form>
         </div>
       </div>

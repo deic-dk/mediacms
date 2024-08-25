@@ -84,7 +84,7 @@ class ContactForm(forms.Form):
         super(ContactForm, self).__init__(*args, **kwargs)
         self.fields["name"].label = "Your name:"
         self.fields["from_email"].label = "Your email:"
-        self.fields["message"].label = "Please add your message here and submit:"
+        self.fields["message"].label = "Type your message here and click submit:"
         self.user = user
         if user.is_authenticated:
             self.fields.pop("name")

@@ -10,7 +10,7 @@ class MyAccountAdapter(DefaultAccountAdapter):
         return settings.SSL_FRONTEND_HOST + url
 
     def clean_email(self, email):
-        if email.split("@")[1] in settings.RESTRICTED_DOMAINS_FOR_USER_REGISTRATION:
+        if not email.split("@")[1].endswith(tuple(settings.RESTRICTED_DOMAINS_FOR_USER_REGISTRATION)):
             raise ValidationError("Domain is restricted from registering")
         return email
 
@@ -19,4 +19,4 @@ class MyAccountAdapter(DefaultAccountAdapter):
 
     def send_mail(self, template_prefix, email, context):
         msg = self.render_mail(template_prefix, email, context)
-        msg.send(fail_silently=True)
+        msg.send(fail_silently=False)

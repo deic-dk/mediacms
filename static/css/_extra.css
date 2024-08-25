@@ -1,0 +1,5 @@
+.saml_login form .cancelButton {
+  background-color: gray;
+  height: 44px;
+  margin-left: 24px;
+}
