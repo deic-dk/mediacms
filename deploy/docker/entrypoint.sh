@@ -11,13 +11,13 @@ cp -r /home/mediacms.io/mediacms/media_files_orig/* /home/mediacms.io/mediacms/m
 # Wait for ScienceData to refresh pods cache
 while true; do
   echo $i
-  if [ "`curl -s -o /dev/null -w "%{http_code}" --insecure -u mediacms: https://10.2.0.18/storage/local_settings.py`" -eq "200" ]; then
+  if [ "`curl -s -o /dev/null -w "%{http_code}" --insecure -u mediacms: https://$HOME_SERVER/storage/local_settings.py`" -eq "200" ]; then
     echo ok && break
   fi
   sleep 4
 done
 
-curl --insecure -u mediacms: https://10.2.0.18/storage/local_settings.py -o /home/mediacms.io/mediacms/cms/local_settings.py
+curl --insecure -u mediacms: https://$HOME_SERVER/storage/local_settings.py -o /home/mediacms.io/mediacms/cms/local_settings.py
 
 rsync -a /home/mediacms.io/mediacms/media_files/static/ /home/mediacms.io/mediacms/static/
 

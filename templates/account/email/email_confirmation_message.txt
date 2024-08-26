@@ -1,4 +1,4 @@
-{% load account %}{% load i18n %}{% load account %}{% load socialaccount %}{% autoescape off %}{% blocktrans %}
+{% load account %}{% load i18n %}{% load socialaccount %}{% autoescape off %}{% blocktrans %}
 Hello {{ user }}!
 
 If you've signed up for an account on {{ PORTAL_NAME }}, please read the user agreement on {{ TERMS_URL }}.

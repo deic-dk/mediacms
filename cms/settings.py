@@ -11,6 +11,9 @@ PORTAL_DESCRIPTION = ""
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Europe/London"
 
+DOCUMENTATION_URL = "https://mediacms.com/s/"
+TERMS_URL = "https://mediacms.com/"
+
 # who can add media
 # valid options include 'all', 'email_verified', 'advancedUser'
 CAN_ADD_MEDIA = "all"

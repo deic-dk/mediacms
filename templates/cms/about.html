@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load account %}{% load socialaccount %}
 {% block headtitle %}About - {{PORTAL_NAME}}{% endblock headtitle %}
 
 {% block headermeta %}
@@ -43,6 +43,6 @@
 	<hr/>
 	
     <p>{{PORTAL_NAME}} is based on <a href="https://mediacms.io">MediaCMS</a> - a modern, fully featured open source video and media CMS, developed to meet today's needs for viewing and sharing media.</p>
-    <p>Information on the stakeholders and intended audience can be found <a href="{{ DOCUMENTATION_URL }}">here</a>.</p>
+    <p>Information on the stakeholders and intended audience can be found <a href="{{DOCUMENTATION_URL}}">here</a>.</p>
 </div>
 {% endblock %}
