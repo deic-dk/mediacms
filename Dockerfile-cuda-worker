@@ -106,11 +106,14 @@ RUN ./config.sh
 RUN ./config_cuda.sh
 
 # We need exactly the same version of this library as the one on the host system (worker1 for now)
-COPY ffmpeg/libnvidia-encode.so.1 /usr/lib/x86_64-linux-gnu/libnvidia-encode.so.1
-COPY ffmpeg/libnvcuvid.so.1 /usr/lib/x86_64-linux-gnu/libnvcuvid.so.1
+#COPY ffmpeg/libnvidia-encode.so.1 /usr/lib/x86_64-linux-gnu/libnvidia-encode.so.1
+#COPY ffmpeg/libnvcuvid.so.1 /usr/lib/x86_64-linux-gnu/libnvcuvid.so.1
+RUN curl -L -o /usr/lib/x86_64-linux-gnu/libnvidia-encode.so.1 https://sciencedata.dk/public/kubefiles_public/ffmpeg_mediacms/libnvidia-encode.so.1
+RUN curl -L -o /usr/lib/x86_64-linux-gnu/libnvcuvid.so.1 https://sciencedata.dk/public/kubefiles_public/ffmpeg_mediacms/libnvcuvid.so.1
 
 # Copy over CUDA-enabled ffmpeg compiled on worker1
-COPY ffmpeg/ffmpeg.tar.gz .
+#COPY ffmpeg/ffmpeg.tar.gz .
+RUN curl -LO https://sciencedata.dk/public/kubefiles_public/ffmpeg_mediacms/ffmpeg.tar.gz
 RUN tar -xvzf ffmpeg.tar.gz
 RUN cp -v ffmpeg/ffmpeg ffmpeg/ffprobe /usr/local/bin/
 
