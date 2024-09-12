@@ -1,0 +1,28 @@
+Types: deb
+# http://snapshot.debian.org/archive/debian/20230814T000000Z
+URIs: http://deb.debian.org/debian
+Suites: bookworm bookworm-updates
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+Types: deb
+# http://snapshot.debian.org/archive/debian-security/20230814T000000Z
+URIs: http://deb.debian.org/debian-security
+Suites: bookworm-security
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+www-data@mediaworker-7665454c7f-8jcjs:/home/mediacms.io/mediacms$ apt-get install debian-archive-keyring^C
+www-data@mediaworker-7665454c7f-8jcjs:/home/mediacms.io/mediacms$ cat /etc/apt/sources.list.d/debian.sources
+Types: deb
+# http://snapshot.debian.org/archive/debian/20230814T000000Z
+URIs: http://deb.debian.org/debian
+Suites: bookworm bookworm-updates
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+Types: deb
+# http://snapshot.debian.org/archive/debian-security/20230814T000000Z
+URIs: http://deb.debian.org/debian-security
+Suites: bookworm-security
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg

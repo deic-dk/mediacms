@@ -65,6 +65,12 @@ sed -i -E "s|(user_username\(sociallogin\.user, \"\"\))|#\1\n                pri
 sed -i -E "s|(user_username,)|\1\n    user_field,|"  /home/mediacms.io/lib/python3.11/site-packages/allauth/socialaccount/internal/flows/signup.py
 
 # This is to be able to use mailhotel.i2.dk as mail server: It encorces TLS, but uses a short key (and an expired certificate)
-
 sed -i -E "s|(if not self.use_ssl and self.use_tls:)|\1\n                self.ssl_context.set_ciphers('DEFAULT:\!DH')|" /home/mediacms.io/lib/python3.11/site-packages/django/core/mail/backends/smtp.py
+
+# Fix sprites not being created, see https://github.com/mediacms-io/mediacms/blob/main/docs/admins_docs.md#16-frequently-asked-questions
+sed -i 's|value="16KP"|value="16000KP"|' /etc/ImageMagick-6/policy.xml
+
+# Use h264_nvenc instead of libx264, enable CUDA
+sed -i 's|libx264|h264_nvenc|' /home/mediacms.io/mediacms/files/helpers.py
+sed -i 's|"-y",|"-y", "-hwaccel", "cuda", "-hwaccel_output_format", "cuda",|' /home/mediacms.io/mediacms/files/helpers.py
 

@@ -1,6 +1,10 @@
 #! /usr/bin/env sh
 set -e
 
+if [ -e ~/.bashrc ]; then
+. ~/.bashrc
+fi
+
 # If there's a prestart.sh script in the /app directory, run it before starting
 PRE_START_PATH=deploy/docker/prestart.sh
 export ENABLE_UWSGI

@@ -1,0 +1,141 @@
+# Build command for worker image: docker build -f Dockerfile-cuda-worker -t sciencedata/mediacms-worker_sciencedata .
+# Push command for worker image: docker push sciencedata/mediacms-worker_sciencedata
+
+FROM python:3.11.4-bookworm AS compile-image
+
+SHELL ["/bin/bash", "-c"]
+
+ENV DEBIAN_FRONTEND=noninteractive TZ=Europe/Copenhagen
+
+# Set up virtualenv
+ENV VIRTUAL_ENV=/home/mediacms.io
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+ENV PIP_NO_CACHE_DIR=1
+RUN python3 -m venv $VIRTUAL_ENV
+
+RUN mkdir -p /home/mediacms.io/mediacms/{logs,media_files} && cd /home/mediacms.io && python3 -m venv $VIRTUAL_ENV
+
+COPY . /home/mediacms.io/mediacms
+WORKDIR /home/mediacms.io/mediacms
+# Have www-data have UID 80 - matching the UID of the NFS mounted directory from silo5
+RUN usermod -u 80 www-data && groupmod -g 80 www-data
+RUN chown -R www-data:www-data /home/mediacms.io
+
+#user www-data
+
+# Install dependencies:
+COPY requirements.txt .
+
+# Have www-data have UID 80 - matching the UID of the NFS mounted directory from silo5
+RUN usermod -u 80 www-data && groupmod -g 80 www-data
+
+RUN pip install -r requirements.txt
+
+RUN wget -q http://zebulon.bok.net/Bento4/binaries/Bento4-SDK-1-6-0-637.x86_64-unknown-linux.zip && \
+    unzip Bento4-SDK-1-6-0-637.x86_64-unknown-linux.zip -d ../bento4 && \
+    mv ../bento4/Bento4-SDK-1-6-0-637.x86_64-unknown-linux/* ../bento4/ && \
+    rm -rf ../bento4/Bento4-SDK-1-6-0-637.x86_64-unknown-linux && \
+    rm -rf ../bento4/docs && \
+    rm Bento4-SDK-1-6-0-637.x86_64-unknown-linux.zip
+
+############ RUNTIME IMAGE ############
+#FROM python:3.11.4-bookworm as runtime-image
+FROM nvidia/cuda:12.5.0-base-ubuntu22.04 AS runtime-image
+
+RUN apt update && apt install -y curl debian-archive-keyring software-properties-common && add-apt-repository ppa:deadsnakes/ppa
+
+#RUN bash -c "curl -fSsL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/3bf863cc.pub | gpg --dearmor | tee /usr/share/keyrings/nvidia-drivers.gpg >& /dev/null"
+#RUN bash -c "echo 'deb [signed-by=/usr/share/keyrings/nvidia-drivers.gpg] https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/ /' >> /etc/apt/sources.list.d/nvidia-drivers.list"
+
+ENV DEBIAN_FRONTEND=noninteractive TZ=Europe/Copenhagen
+
+RUN apt update -y && apt -y upgrade && apt install -y \
+    supervisor nginx imagemagick procps wget xz-utils vim less sudo rsync unzip curl \
+    xmlsec1 libxmlsec1 libxmlsec1-dev python3.11 python3.11-dev python3.11-venv zlib1g-dev \
+    libx264-dev libx265-dev cuda-toolkit-12-5 && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get purge --auto-remove && \
+    apt-get clean
+
+#libnvidia-compute-555 nvidia-utils-555 && \
+
+RUN update-alternatives --install /usr/local/bin/python3 python3 /usr/bin/python3.11 1
+
+WORKDIR /home/mediacms.io/mediacms
+
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# See: https://github.com/celery/celery/issues/6285#issuecomment-715316219
+ENV CELERY_APP='cms'
+
+COPY --chown=www-data:www-data --from=compile-image /home/mediacms.io /home/mediacms.io
+
+# This is to get lxml and xmlsec to use the same (system) libxml2 and work.
+# xmlsec appears to be statically linked to another libxml2.
+# Regenerating binaries like below, for some reason only works on a deployed pod,
+# i.e. only on a deployed pod does it generate a dynamically linked xmlsec binary.
+# So, we just hard-copy in one already generated.
+COPY xmlsec.cpython-311-x86_64-linux-gnu.so.worker \
+/home/mediacms.io/lib/python3.11/site-packages/xmlsec.cpython-311-x86_64-linux-gnu.so
+#RUN pip install --force-reinstall --no-binary=lxml lxml && \
+#pip install --force-reinstall --no-binary=xmlsec xmlsec &&\
+#pip install --force-reinstall --no-binary=lxml lxml
+
+#COPY debian.sources /etc/apt/sources.list.d/debian.sources
+COPY libxml2.so.2.9.14 /lib/x86_64-linux-gnu/libxml2.so.2.9.14
+COPY libicuuc.so.72 /lib/x86_64-linux-gnu/libicuuc.so.72
+COPY libicudata.so.72 /lib/x86_64-linux-gnu/libicudata.so.72
+
+# Have www-data have UID 80 - matching the UID of the NFS mounted directory from silo5
+RUN usermod -u 80 www-data && groupmod -g 80 www-data
+RUN chown -R www-data:www-data /home/mediacms.io /var/www /etc/nginx /etc/supervisor /var/log/supervisor /var/lib/nginx /var/log/nginx
+
+#RUN wget -q https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz && \
+#    mkdir -p ffmpeg-tmp && \
+#    tar -xf ffmpeg-release-amd64-static.tar.xz --strip-components 1 -C ffmpeg-tmp && \
+#    cp -v ffmpeg-tmp/ffmpeg ffmpeg-tmp/ffprobe ffmpeg-tmp/qt-faststart /usr/local/bin && \
+#    rm -rf ffmpeg-tmp ffmpeg-release-amd64-static.tar.xz
+
+RUN chmod +x /home/mediacms.io/mediacms/deploy/docker/entrypoint.sh \
+/home/mediacms.io/mediacms/config.sh /home/mediacms.io/mediacms/config_cuda.sh
+
+USER root
+
+RUN ./config.sh
+RUN ./config_cuda.sh
+
+# We need exactly the same version of this library as the one on the host system (worker1 for now)
+COPY ffmpeg/libnvidia-encode.so.1 /usr/lib/x86_64-linux-gnu/libnvidia-encode.so.1
+COPY ffmpeg/libnvcuvid.so.1 /usr/lib/x86_64-linux-gnu/libnvcuvid.so.1
+
+# Copy over CUDA-enabled ffmpeg compiled on worker1
+COPY ffmpeg/ffmpeg.tar.gz .
+RUN tar -xvzf ffmpeg.tar.gz
+RUN cp -v ffmpeg/ffmpeg ffmpeg/ffprobe /usr/local/bin/
+
+USER www-data
+WORKDIR /home/mediacms.io/mediacms
+
+# Configure paths
+RUN echo "alias ls='ls --color=auto'" >> /var/www/.bashrc &&\
+  echo "export PATH=\$PATH:/home/mediacms.io/bin:/bin:/sbin/:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/home/mediacms.io/mediacms/ffmpeg" >> /var/www/.bashrc &&\
+  echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/home/mediacms.io/bin:lib:/home/mediacms.io/mediacms/ffmpeg/libavcodec:/home/mediacms.io/mediacms/ffmpeg/libavdevice:/home/mediacms.io/mediacms/ffmpeg/libavfilter:/home/mediacms.io/mediacms/ffmpeg/libavformat:/home/mediacms.io/mediacms/ffmpeg/libavutil:/home/mediacms.io/mediacms/ffmpeg/libpostproc:/home/mediacms.io/mediacms/ffmpeg/libswresample:/home/mediacms.io/mediacms/ffmpeg/libswscale" >> /var/www/.bashrc
+
+# Use these to toggle which processes supervisord should run
+ENV ENABLE_UWSGI=$ENABLE_UWSGI
+ENV ENABLE_NGINX=$ENABLE_NGINX
+ENV ENABLE_CELERY_BEAT=$ENABLE_CELERY_BEAT
+ENV ENABLE_CELERY_SHORT=$ENABLE_CELERY_SHORT
+ENV ENABLE_CELERY_LONG=$ENABLE_CELERY_LONG
+ENV ENABLE_MIGRATIONS=$ENABLE_MIGRATIONS
+
+# Change redis host from mediaredis
+ENV REDIS_HOST=$REDIS_HOST
+
+#EXPOSE 9000 8000
+
+ENTRYPOINT ["./deploy/docker/entrypoint.sh"]
+
+CMD ["./deploy/docker/start.sh"]
+#CMD ["sleep", "64000"]

@@ -1,6 +1,3 @@
-# Kudos to Werner Robitza, AVEQ GmbH, for helping with ffmpeg
-# related content
-
 import hashlib
 import json
 import os

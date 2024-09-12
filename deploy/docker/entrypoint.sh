@@ -21,4 +21,30 @@ curl --insecure -u mediacms: https://$HOME_SERVER/storage/local_settings.py -o /
 
 rsync -a /home/mediacms.io/mediacms/media_files/static/ /home/mediacms.io/mediacms/static/
 
+if [ -n "$REDIS_HOST" ] ; then
+  sed -i "s|mediaredis|$REDIS_HOST|g" /home/mediacms.io/mediacms/cms/local_settings.py
+fi
+
+if [ -n "$NO_SAML" ] ; then
+cat << "EOF" >> /home/mediacms.io/mediacms/static/css/_extra.css
+.saml_login, .saml_login+p {
+  display: none;
+}
+#login_form {
+  display: block!important;
+}
+
+EOF
+fi
+
+# Make a random CUDA_VISIBLE_DEVICES_NUM out of the GPUs present
+if [[ -n $CUDA_VISIBLE_DEVICES_NUM ]] ; then
+num_gpus=`nvidia-smi -L | grep ^GPU | wc -l`
+gpus=$(echo $(shuf -i 0-$num_gpus -n $CUDA_VISIBLE_DEVICES_NUM | sort -n | sed "s|$|,|") | sed 's| ||g' | sed 's|,$||')
+export CUDA_VISIBLE_DEVICES=$gpus
+cat << EOF >> /var/www/.bashrc
+export CUDA_VISIBLE_DEVICES=$gpus
+EOF
+fi
+
 exec "$@"

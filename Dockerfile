@@ -1,3 +1,6 @@
+# Build commandfor web image: docker build -t sciencedata/mediacms_sciencedata .
+# Push command for web image: docker push sciencedata/mediacms_sciencedata
+
 FROM python:3.11.4-bookworm AS compile-image
 
 SHELL ["/bin/bash", "-c"]
@@ -40,8 +43,9 @@ ENV CELERY_APP='cms'
 
 COPY --chown=www-data:www-data --from=compile-image /home/mediacms.io /home/mediacms.io
 
-RUN apt-get update -y && apt-get -y upgrade && apt-get install -y --no-install-recommends \
-    supervisor nginx imagemagick procps wget xz-utils vim less sudo rsync xmlsec1 libxmlsec1 libxmlsec1-dev && \
+RUN apt update -y && apt -y upgrade && apt install -y --no-install-recommends \
+    supervisor nginx imagemagick procps wget xz-utils vim less sudo rsync xmlsec1 \
+    libxmlsec1 libxmlsec1-dev python3.11-venv && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get purge --auto-remove && \
     apt-get clean
@@ -51,7 +55,7 @@ RUN apt-get update -y && apt-get -y upgrade && apt-get install -y --no-install-r
 # Regeneating binaries like below, for some reason only works on a deployed pod,
 # i.e. only on a deployed pod does it generate a dynamically linked xmlsec binary.
 # So, we just hard-copy in one already generated.
-COPY xmlsec.cpython-311-x86_64-linux-gnu.so \
+COPY xmlsec.cpython-311-x86_64-linux-gnu.so.web \
 /home/mediacms.io/lib/python3.11/site-packages/xmlsec.cpython-311-x86_64-linux-gnu.so
 #RUN pip install --force-reinstall --no-binary=lxml lxml && \
 #pip install --force-reinstall --no-binary=xmlsec xmlsec &&\
@@ -85,6 +89,11 @@ ENV ENABLE_CELERY_BEAT=$ENABLE_CELERY_BEAT
 ENV ENABLE_CELERY_SHORT=$ENABLE_CELERY_SHORT
 ENV ENABLE_CELERY_LONG=$ENABLE_CELERY_LONG
 ENV ENABLE_MIGRATIONS=$ENABLE_MIGRATIONS
+
+# Change redis host from mediaredis
+ENV REDIS_HOST=$REDIS_HOST
+# Disable saml login form
+ENV NO_SAML=$NO_SAML
 
 EXPOSE 9000 8000
 
