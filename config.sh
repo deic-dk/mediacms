@@ -59,10 +59,23 @@ CipherString = DEFAULT:@SECLEVEL=1
 EOF
 ) /etc/ssl/openssl.cnf
 
-# Allow socialaacount/saml to keep the WAYF saml UID as username (it is in fact unique).
+# Allow socialaccount/saml to keep the WAYF saml UID as username (it is in fact unique).
 # Fill in full name
-sed -i -E "s|(user_username\(sociallogin\.user, \"\"\))|#\1\n                print(\"Insisting on \"+username)\n        user_field(sociallogin.user, \"name\", user_field(sociallogin.user, \"first_name\")+\" \"+user_field(sociallogin.user, \"last_name\"))|" /home/mediacms.io/lib/python3.11/site-packages/allauth/socialaccount/internal/flows/signup.py
+# Set password to a known string. Regular password login will not be allowed for WAYF users, but used for publishing from ScienceData.
+password=`cat /tmp/mediacms_passwd.txt`
+rm  /tmp/mediacms_passwd.txt
 sed -i -E "s|(user_username,)|\1\n    user_field,|"  /home/mediacms.io/lib/python3.11/site-packages/allauth/socialaccount/internal/flows/signup.py
+sed -i -E "s|(import SocialLogin)|\1\nfrom django.contrib.auth import get_user_model|"  /home/mediacms.io/lib/python3.11/site-packages/allauth/socialaccount/internal/flows/signup.py
+rep1="\
+                print(\"Insisting on \"+username)\n\
+        user_field(sociallogin.user, \"name\", user_field(sociallogin.user, \"first_name\")+\" \"+user_field(sociallogin.user, \"last_name\"))\n"
+rep2="\
+        User = get_user_model()\n\
+        u = User.objects.get(username=username)\n\
+        u.set_password('$password')\n\
+        u.save()\n"
+sed -i -E "s|(user_username\(sociallogin\.user, \"\"\))|#\1\n$rep1|" /home/mediacms.io/lib/python3.11/site-packages/allauth/socialaccount/internal/flows/signup.py
+sed -i -E "s|^(        resp = complete_social_signup\(request, sociallogin\))$|\1\n$rep2|" /home/mediacms.io/lib/python3.11/site-packages/allauth/socialaccount/internal/flows/signup.py
 
 # This is to be able to use mailhotel.i2.dk as mail server: It encorces TLS, but uses a short key (and an expired certificate)
 sed -i -E "s|(if not self.use_ssl and self.use_tls:)|\1\n                self.ssl_context.set_ciphers('DEFAULT:\!DH')|" /home/mediacms.io/lib/python3.11/site-packages/django/core/mail/backends/smtp.py

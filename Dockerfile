@@ -1,4 +1,5 @@
-# Build commandfor web image: docker build -t sciencedata/mediacms_sciencedata .
+# Build command for web image:
+# curl -LO --location-trusted -u my_username:my_password https://sciencedata.dk/public/kubefiles/mediacms_passwd.txt && docker build -t sciencedata/mediacms_sciencedata .
 # Push command for web image: docker push sciencedata/mediacms_sciencedata
 
 FROM python:3.11.4-bookworm AS compile-image
@@ -77,6 +78,9 @@ RUN chmod +x /home/mediacms.io/mediacms/deploy/docker/entrypoint.sh /home/mediac
 
 USER root
 RUN bash -c "echo 'root:secret' | chpasswd"
+
+# Set password of new WAYF users to a known string in config.sh. Regular password login will not be allowed for WAYF users, but used for publishing from ScienceData.
+COPY mediacms_passwd.txt /tmp/mediacms_passwd.txt
 
 RUN ./config.sh
 
