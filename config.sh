@@ -84,6 +84,6 @@ sed -i -E "s|(if not self.use_ssl and self.use_tls:)|\1\n                self.ss
 sed -i 's|value="16KP"|value="16000KP"|' /etc/ImageMagick-6/policy.xml
 
 # Use h264_nvenc instead of libx264, enable CUDA
-sed -i 's|libx264|h264_nvenc|' /home/mediacms.io/mediacms/files/helpers.py
-sed -i 's|"-y",|"-y", "-hwaccel", "cuda", "-hwaccel_output_format", "cuda",|' /home/mediacms.io/mediacms/files/helpers.py
+#sed -i 's|libx264|h264_nvenc|' /home/mediacms.io/mediacms/files/helpers.py
+#sed -i 's|"-y",|"-y", "-hwaccel", "cuda", "-hwaccel_output_format", "cuda",|' /home/mediacms.io/mediacms/files/helpers.py
 
