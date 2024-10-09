@@ -21,6 +21,11 @@ curl --insecure -u mediacms: https://$HOME_SERVER/storage/local_settings.py -o /
 
 rsync -a /home/mediacms.io/mediacms/media_files/static/ /home/mediacms.io/mediacms/static/
 
+# Keep chunks in local filesystem
+rm -rf /home/mediacms.io/mediacms/media_files/chunks /tmp/chunks
+mkdir /tmp/chunks
+ln -s /tmp/chunks /home/mediacms.io/mediacms/media_files/chunks
+
 if [ -n "$REDIS_HOST" ] ; then
   sed -i "s|mediaredis|$REDIS_HOST|g" /home/mediacms.io/mediacms/cms/local_settings.py
 fi

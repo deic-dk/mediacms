@@ -20,11 +20,11 @@ const formatPage = (page) => {
     ? templates.renderPageContent({ page: { id: pageContentId, component: page.component } })
     : undefined;
   const headLinks = [
-    { rel: 'preload', href: './static/lib/video-js/7.20.2/video.min.js', as: 'script' },
+    { rel: 'preload', href: './static/lib/video-js/7.20.2/video.js', as: 'script' },
     ...(page.headLinks ? page.headLinks : []),
   ];
   const bodyScripts = [
-    { src: './static/lib/video-js/7.20.2/video.min.js' },
+    { src: './static/lib/video-js/7.20.2/video.js' },
     ...(page.bodyScripts ? page.bodyScripts : []),
   ];
 
@@ -90,8 +90,8 @@ const PAGES = {
     title: 'Add media',
     renderer: templates.renderAddMediaPageContent(),
     snippet: templates.htmlBodySnippetAddMediaPage(),
-    headLinks: [{ rel: 'preload', href: './static/lib/file-uploader/5.13.0/fine-uploader.min.js', as: 'script' }],
-    bodyScripts: [{ src: './static/lib/file-uploader/5.13.0/fine-uploader.min.js' }],
+    headLinks: [{ rel: 'preload', href: './static/lib/file-uploader/5.13.0/fine-uploader.js', as: 'script' }],
+    bodyScripts: [{ src: './static/lib/file-uploader/5.13.0/fine-uploader.js' }],
   },
   embed: {
     id: 'embed',
@@ -190,8 +190,8 @@ const DEV_ONLY_STATIC_PAGES = {
     title: 'Add media - Template',
     renderer: templates.renderAddMediaPageContent(),
     snippet: templates.static.addMediaPageTemplate(),
-    headLinks: [{ rel: 'preload', href: './static/lib/file-uploader/5.13.0/fine-uploader.min.js', as: 'script' }],
-    bodyScripts: [{ src: './static/lib/file-uploader/5.13.0/fine-uploader.min.js' }],
+    headLinks: [{ rel: 'preload', href: './static/lib/file-uploader/5.13.0/fine-uploader.js', as: 'script' }],
+    bodyScripts: [{ src: './static/lib/file-uploader/5.13.0/fine-uploader.js' }],
   },
   'edit-media': {
     buildExclude: true,

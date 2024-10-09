@@ -64,6 +64,8 @@ from .serializers import (
 from .stop_words import STOP_WORDS
 from .tasks import save_user_action
 
+import os
+
 VALID_USER_ACTIONS = [action for action, name in USER_MEDIA_ACTIONS]
 
 
@@ -625,7 +627,14 @@ class MediaDetail(APIView):
         media = self.get_object(friendly_token)
         if isinstance(media, Response):
             return media
-        media.delete()
+        # Ignore Python/NFS issue
+        try:
+            media.delete()
+        except OSError as exc:
+            if exc.errno == os.errno.ENOTEMPTY:
+                print("Directory not empty")
+            else:
+                raise
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

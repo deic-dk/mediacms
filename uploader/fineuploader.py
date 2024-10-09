@@ -76,11 +76,14 @@ class ChunkedFineUploader(BaseFineUploader):
         # implement the same behaviour.
         self.real_path = self.storage.save(self._full_file_path, StringIO())
         with self.storage.open(self.real_path, "wb") as final_file:
+            print("Writing final file: "+str(final_file))
             for i in range(self.total_parts):
                 part = join(self.chunks_path, str(i))
+                print("Reading chunk: "+str(part))
                 with self.storage.open(part, "rb") as source:
                     final_file.write(source.read())
-        shutil.rmtree(self._abs_chunks_path)
+        print("Removing chunks: "+self._abs_chunks_path)
+        shutil.rmtree(self._abs_chunks_path, True)
 
     def _save_chunk(self):
         return self.storage.save(self.chunk_file, self.file)
@@ -89,6 +92,7 @@ class ChunkedFineUploader(BaseFineUploader):
         if self.chunked:
             chunk = self._save_chunk()
             if not self.concurrent and self.is_time_to_combine_chunks:
+                print("Calling combine_chunks()")
                 self.combine_chunks()
                 return self.real_path
             return chunk

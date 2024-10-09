@@ -87,3 +87,7 @@ sed -i 's|value="16KP"|value="16000KP"|' /etc/ImageMagick-6/policy.xml
 #sed -i 's|libx264|h264_nvenc|' /home/mediacms.io/mediacms/files/helpers.py
 #sed -i 's|"-y",|"-y", "-hwaccel", "cuda", "-hwaccel_output_format", "cuda",|' /home/mediacms.io/mediacms/files/helpers.py
 
+# Allow large files - well, shouln't be necessary as all i chunked...
+#sed -i -E 's|client_max_body_size .*|client_max_body_size 20000M|' /etc/nginx/nginx.conf
+#sed -i -E 's|proxy_read_timeout .*|proxy_read_timeout 12000|' /etc/nginx/nginx.conf
+
