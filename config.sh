@@ -73,6 +73,7 @@ rep2="\
         User = get_user_model()\n\
         u = User.objects.get(username=username)\n\
         u.set_password('$password')\n\
+        u.is_editor = True\n\
         u.save()\n"
 sed -i -E "s|(user_username\(sociallogin\.user, \"\"\))|#\1\n$rep1|" /home/mediacms.io/lib/python3.11/site-packages/allauth/socialaccount/internal/flows/signup.py
 sed -i -E "s|^(        resp = complete_social_signup\(request, sociallogin\))$|\1\n$rep2|" /home/mediacms.io/lib/python3.11/site-packages/allauth/socialaccount/internal/flows/signup.py
