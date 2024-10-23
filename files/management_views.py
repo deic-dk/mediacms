@@ -85,7 +85,12 @@ class MediaList(APIView):
             is_reviewed = "all"
 
         pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
-        qs = Media.objects.filter()
+        # For editors, show only owned media
+        if request.user.is_superuser or is_mediacms_manager(request.user):
+            qs = Media.objects.filter()
+        else:
+            qs = Media.objects.filter(user=request.user)
+
         if state:
             qs = qs.filter(state=state)
         if encoding_status:
