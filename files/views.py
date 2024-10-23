@@ -746,7 +746,7 @@ class MediaActions(APIView):
 
 class MediaSearch(APIView):
     """
-    Retrieve results for searc
+    Retrieve results for search
     Only GET is implemented here
     """
 

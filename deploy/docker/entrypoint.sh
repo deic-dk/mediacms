@@ -17,8 +17,10 @@ while true; do
   sleep 4
 done
 
+# Get local_settings.py from ScienceData (via HTTP)
 curl --insecure -u mediacms: https://$HOME_SERVER/storage/local_settings.py -o /home/mediacms.io/mediacms/cms/local_settings.py
 
+# Get js and css files from ScienceData (via NFS)
 rsync -a /home/mediacms.io/mediacms/media_files/static/ /home/mediacms.io/mediacms/static/
 
 # Keep chunks in local filesystem
