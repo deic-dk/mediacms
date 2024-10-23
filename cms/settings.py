@@ -24,6 +24,8 @@ PORTAL_WORKFLOW = "public"
 # valid values: 'light', 'dark'.
 DEFAULT_THEME = "light"
 
+# Add tag with name of the hostname to new uploads - for multi-tennancy
+TAG_UPLOADS_WITH_HOSTNAME = False
 
 # These are passed on every request
 # if set to False will not fetch external content
@@ -316,6 +318,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "middlewares.middlewares.RequestMiddleware",
 ]
 
 ROOT_URLCONF = "cms.urls"

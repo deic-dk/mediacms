@@ -10,12 +10,14 @@ from django.views import generic
 
 from cms.permissions import user_allowed_to_upload
 from files.helpers import rm_file
-from files.models import Media
+from files.models import Media, Tag
 
 from .fineuploader import ChunkedFineUploader
 from .forms import FineUploaderUploadForm, FineUploaderUploadSuccessForm
 
 import traceback
+
+from middlewares.middlewares import RequestMiddleware
 
 class FineUploaderView(generic.FormView):
     http_method_names = ("post",)
@@ -74,6 +76,17 @@ class FineUploaderView(generic.FormView):
             new = Media.objects.create(media_file=myfile, user=self.request.user)
         print("Removing "+media_file)
         rm_file(media_file)
+        # Tag with server hostname - for multi-tennancy
+        if settings.TAG_UPLOADS_WITH_HOSTNAME:
+            request = RequestMiddleware(get_response=None)
+            request = request.thread_local.current_request
+            if "HTTP_HOST" in request.environ:
+                tagname = "domain:"+request.environ.get("HTTP_HOST")
+                try:
+                    tag = Tag.objects.get(title=tagname)
+                except Tag.DoesNotExist:
+                    tag = Tag.objects.create(title=tagname, user=self.request.user)
+                new.tags.add(tag)
         print("Removing: "+os.path.join(settings.MEDIA_ROOT, self.upload.file_path))
         shutil.rmtree(os.path.join(settings.MEDIA_ROOT, self.upload.file_path))
         return self.make_response({"success": True, "media_url": new.get_absolute_url()})

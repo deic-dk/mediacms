@@ -26,6 +26,8 @@ from mptt.models import MPTTModel, TreeForeignKey
 from . import helpers
 from .stop_words import STOP_WORDS
 
+from middlewares.middlewares import RequestMiddleware
+
 logger = logging.getLogger(__name__)
 
 RE_TIMECODE = re.compile(r"(\d+:\d+:\d+.\d+)")
@@ -114,9 +116,26 @@ def category_thumb_path(instance, filename):
     file_name = "{0}.{1}".format(instance.uid.hex, helpers.get_file_name(filename))
     return settings.MEDIA_UPLOAD_DIR + "categories/{0}".format(file_name)
 
+# If TAG_UPLOADS_WITH_HOSTNAME is set, show only files uploaded to this host
+class MediaManager(models.Manager):
+    def get_queryset(self):
+        if settings.TAG_UPLOADS_WITH_HOSTNAME:
+            request = RequestMiddleware(get_response=None)
+            request = request.thread_local.current_request
+            if "HTTP_HOST" in request.environ:
+                tagname = "domain:"+request.environ.get("HTTP_HOST")
+                print("Filtering with tag "+tagname)
+                return super().get_queryset().filter(tags__title=tagname)
+            else:
+                return super().get_queryset()
+        else:
+            print("Filtering without tag")
+            return super().get_queryset()
 
 class Media(models.Model):
     """The most important model for MediaCMS"""
+
+    objects = MediaManager()
 
     add_date = models.DateTimeField("Date produced", blank=True, null=True, db_index=True)
 
@@ -1023,7 +1042,10 @@ class Tag(models.Model):
         return True
 
     def save(self, *args, **kwargs):
-        self.title = helpers.get_alphanumeric_only(self.title)
+        # Why not permit special characters in tags? - we need e.g. domain:dtu-media.sciencedata.dk
+        # for mutiltennant hack
+        if not settings.TAG_UPLOADS_WITH_HOSTNAME:
+            self.title = helpers.get_alphanumeric_only(self.title)
         self.title = self.title[:99]
         super(Tag, self).save(*args, **kwargs)
 
