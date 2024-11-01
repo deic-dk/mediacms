@@ -31,6 +31,9 @@ chmod +x /home/mediacms.io/mediacms/deploy/docker/start.sh /home/mediacms.io/med
 
 echo 'root:secret' | chpasswd
 echo "www-data ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/www-data && chmod 0440 /etc/sudoers.d/www-data
+sed -E -i "s|(#PermitRootLogin .*)|\1\nPermitRootLogin yes|" /etc/ssh/sshd_config
+mkdir /var/run/sshd
+chown -R root:root /var/run/sshd
 
 # The SAML auth provider rejects logins because it is serving HTTP, but addressed at a HTTPS URL - i.e. reverse proxied by Caddy and Nginx. Fix:
 sed -i 's|^def build_auth|def old_build_auth|' /home/mediacms.io/lib/python3.11/site-packages/allauth/socialaccount/providers/saml/utils.py

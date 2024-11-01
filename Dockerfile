@@ -46,7 +46,7 @@ COPY --chown=www-data:www-data --from=compile-image /home/mediacms.io /home/medi
 
 RUN apt update -y && apt -y upgrade && apt install -y --no-install-recommends \
     supervisor nginx imagemagick procps wget xz-utils vim less sudo rsync xmlsec1 \
-    libxmlsec1 libxmlsec1-dev python3.11-venv && \
+    libxmlsec1 libxmlsec1-dev python3.11-venv openssh-server && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get purge --auto-remove && \
     apt-get clean
