@@ -6,7 +6,10 @@ from django.conf import settings
 
 from . import utils
 
+from files.helpers import run_command
 
+import time
+from datetime import datetime
 class BaseFineUploader(object):
     def __init__(self, data, *args, **kwargs):
         self.data = data
@@ -79,11 +82,21 @@ class ChunkedFineUploader(BaseFineUploader):
             print("Writing final file: "+str(final_file))
             for i in range(self.total_parts):
                 part = join(self.chunks_path, str(i))
-                print("Reading chunk: "+str(part))
-                with self.storage.open(part, "rb") as source:
-                    final_file.write(source.read())
-        print("Removing chunks: "+self._abs_chunks_path)
-        shutil.rmtree(self._abs_chunks_path, True)
+                #print("Reading chunk: "+str(part))
+                ## Try 3 times to read chunk
+                for j in range(1,3):
+                    try:
+                        with self.storage.open(part, "rb") as source:
+                            final_file.write(source.read())
+                            break
+                    except BaseException as e:
+                        print("Could not read chunk "+e.message)
+                        time.sleep(1)
+        print("Removing chunks: "+self._abs_chunks_path+" "+str(datetime.now()))
+        # shutil.rmtree doesn't like nfs
+        #shutil.rmtree(self._abs_chunks_path, True)
+        cmd = ['rm', '-rf', self._abs_chunks_path]
+        ret = run_command(cmd)
 
     def _save_chunk(self):
         return self.storage.save(self.chunk_file, self.file)
