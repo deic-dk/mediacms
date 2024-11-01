@@ -54,4 +54,7 @@ export CUDA_VISIBLE_DEVICES=$gpus
 EOF
 fi
 
+# Start ssh server
+sudo service ssh start
+
 exec "$@"
