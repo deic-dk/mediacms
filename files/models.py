@@ -339,11 +339,12 @@ class Media(models.Model):
 
         if self.pk:
             # media exists
-
+            logger.warn("media exists")
             # check case where another media file was uploaded
             if self.media_file != self.__original_media_file:
                 # set this otherwise gets to infinite loop
                 self.__original_media_file = self.media_file
+                logger.warn("calling media_init...")
                 self.media_init()
 
             # for video files, if user specified a different time
@@ -355,7 +356,7 @@ class Media(models.Model):
             # media is going to be created now
             # after media is saved, post_save signal will call media_init function
             # to take care of post save steps
-
+            logger.warn("media does not exist")
             self.state = helpers.get_default_state(user=self.user)
 
         # condition to appear on listings
@@ -428,6 +429,7 @@ class Media(models.Model):
         video duration, encode
         """
         self.set_media_type()
+        logger.warn("media_init - "+self.media_type+" - "+str(settings.DO_NOT_TRANSCODE_VIDEO)+" - "+self.media_file.path)
         if self.media_type == "video":
             self.set_thumbnail(force=True)
             if settings.DO_NOT_TRANSCODE_VIDEO:
@@ -1369,7 +1371,7 @@ def media_save(sender, instance, created, **kwargs):
     # we have to disconnect signal to avoid infinite recursion
     if created:
         from .methods import notify_users
-
+        logger.warn("calling media_init")
         instance.media_init()
         notify_users(friendly_token=instance.friendly_token, action="media_added")
 
