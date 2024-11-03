@@ -48,7 +48,7 @@ ERRORS_LIST = [
 ]
 
 
-@task(name="chunkize_media", bind=True, queue="short_tasks", soft_time_limit=60 * 30)
+@task(name="chunkize_media", bind=True, queue="short_tasks", soft_time_limit=60 * 60 * 3)
 def chunkize_media(self, friendly_token, profiles, force=True):
     """Break media in chunks and start encoding tasks"""
 
@@ -83,7 +83,7 @@ def chunkize_media(self, friendly_token, profiles, force=True):
                 chunks.append(ch[0])
     if not chunks:
         # command completely failed to segment file.putting to normal encode
-        logger.info("Failed to break file {0} in chunks." " Putting to normal encode queue".format(friendly_token))
+        logger.warn("Failed to break file {0} in chunks." " Putting to normal encode queue".format(friendly_token))
         for profile in profiles:
             if media.video_height and media.video_height < profile.resolution:
                 if profile.resolution not in settings.MINIMUM_RESOLUTIONS_TO_ENCODE:

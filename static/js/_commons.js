@@ -29906,6 +29906,7 @@
                 }
                 n += 1;
               }
+            /*comment this out do drop hover preview*/
             if (this.extensions.anim.length || this.extensions.fallback.elem) {
               if (((this.element = document.createElement("picture")), this.extensions.anim.length)) for (n = 0; n < this.extensions.anim.length; ) this.element.appendChild(this.extensions.anim[n].elem), (n += 1);
               this.extensions.fallback.elem && this.element.appendChild(this.extensions.fallback.elem),
